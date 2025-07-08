@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Idea Crate Marketplace</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom right, #000000, #1a1a1a);
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin: 20px 0;
+    }
+    .profile-icon {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: white;
+      color: black;
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .profile-panel {
+      display: none;
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      background: #222;
+      border-radius: 10px;
+      padding: 20px;
+      width: 300px;
+      text-align: left;
+      box-shadow: 0 0 10px rgba(0,0,0,0.6);
+      z-index: 10;
+    }
+    .overlay-popup {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(6px);
+      z-index: 30;
+      justify-content: center;
+      align-items: center;
+    }
+    .popup-content {
+      background: #333;
+      padding: 30px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 600px;
+      text-align: left;
+      overflow-y: auto;
+      max-height: 80vh;
+    }
+    .popup-content h3 {
+      margin-top: 0;
+    }
+    .popup-content ul {
+      list-style: none;
+      padding-left: 0;
+      color: #bbb;
+    }
+    .popup-content button {
+      margin-top: 15px;
+    }
+    .login-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(6px);
+      z-index: 20;
+      justify-content: center;
+      align-items: center;
+    }
+    .login-modal {
+      background: #333;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.8);
+      width: 300px;
+      text-align: center;
+    }
+    .crate-buttons {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 30px 0 10px;
+    }
+    .category-select {
+      margin: 0 auto 30px;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 1rem;
+      background: #333;
+      color: white;
+      border: 1px solid #666;
+    }
+    button {
+      background-color: #6b46c1;
+      color: white;
+      border: none;
+      padding: 15px 25px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #553c9a;
+    }
+    .idea-card {
+      background-color: white;
+      color: black;
+      margin: 0 auto;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 500px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    .idea-tier {
+      color: purple;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    form textarea, form input, form select {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+    }
+    .toggle-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    .toggle-buttons button {
+      flex: 1;
+      margin: 5px;
+      background-color: #444;
+    }
+    .toggle-buttons button.active {
+      background-color: #6b46c1;
+    }
+  </style>
+</head>
+<body>
+  <div class="profile-icon" onclick="toggleProfile()">👤</div>
+
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-modal" id="loginModal">
+      <h3>Login to Access Marketplace</h3>
+      <form onsubmit="loginUser(event)">
+        <input type="text" id="loginUsername" placeholder="Username" required />
+        <input type="email" id="loginEmail" placeholder="Email" required />
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="overlay-popup" id="ideaPopup">
+    <div class="popup-content" id="popupContent">
+      <h3 id="popupTitle">Your Ideas</h3>
+      <ul id="popupList"></ul>
+      <button onclick="closePopup()">Go Back</button>
+    </div>
+  </div>
+
+  <div class="profile-panel" id="profilePanel">
+    <p><strong>Name:</strong> <span id="userName">Guest</span></p>
+    <p><strong>Email:</strong> <span id="userEmail">guest@example.com</span></p>
+    <p><strong>Total Balance:</strong> ₹<span id="totalBalance">1000</span></p>
+    <hr>
+    <p><strong>Upload Your Own Idea</strong></p>
+    <form onsubmit="uploadIdea(event)">
+      <input type="text" id="ideaTitle" placeholder="Idea Title" required />
+      <select id="ideaCategory">
+        <option value="Game">Game</option>
+        <option value="Business">Business</option>
+        <option value="App">App</option>
+      </select>
+      <input type="file" id="ideaFile" accept=".pdf,.txt" required />
+      <button type="submit">Upload Idea</button>
+    </form>
+
+    <div class="toggle-buttons">
+      <button onclick="showPopup('uploaded')">Your Uploaded Ideas</button>
+      <button onclick="showPopup('purchased')">Purchased Ideas</button>
+    </div>
+  </div>
+
+  <h1>🎁 Idea Crate Marketplace</h1>
+
+  <select class="category-select" id="categoryFilter">
+    <option value="All">All Categories</option>
+    <option value="Game">Games</option>
+    <option value="Business">Businesses</option>
+    <option value="App">Websites / Apps</option>
+  </select>
+
+  <div class="crate-buttons">
+    <button onclick="openCrate('Normal', 100)">Normal Crate (₹100)</button>
+    <button onclick="openCrate('Improved', 250)">Improved Crate (₹250)</button>
+    <button onclick="openCrate('Unique', 500)">Unique Crate (₹500)</button>
+  </div>
+
+  <div id="ideaContainer"></div>
+
+  <script>
+    let balance = 1000;
+    let loggedInUser = null;
+    let uploadedIdeas = [];
+    let purchasedIdeas = [];
+
+    const ideas = [
+      { title: "Simple Task Organizer", tier: "Normal", category: "App", description: "A web-based checklist for personal task tracking." },
+      { title: "AI-powered Resume Builder", tier: "Improved", category: "Business", description: "Resume builder that adjusts content based on job descriptions using AI." },
+      { title: "Crypto-Only Luxury Auction House", tier: "Unique", category: "Business", description: "An exclusive auction platform accepting only Bitcoin, targeting whales and luxury resellers." },
+      { title: "Gamified Learning Tracker", tier: "Improved", category: "App", description: "Platform for tracking learning progress with points, levels, and rewards." },
+      { title: "Mystery Travel Crate", tier: "Unique", category: "Game", description: "A surprise travel plan generator including destination, hotel, and itinerary." }
+    ];
+
+    function toggleProfile() {
+      const panel = document.getElementById('profilePanel');
+      panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function openCrate(tier, cost) {
+      if (!loggedInUser) {
+        alert("Login required!");
+        return;
+      }
+
+      const selectedCategory = document.getElementById("categoryFilter").value;
+
+      if (balance < cost) {
+        alert("Insufficient balance! Please top-up.");
+        return;
+      }
+
+      const filteredIdeas = ideas.filter(idea => idea.tier === tier && (selectedCategory === 'All' || idea.category === selectedCategory));
+      if (filteredIdeas.length === 0) {
+        alert(`No more ${tier} crates in '${selectedCategory}' category!`);
+        return;
+      }
+
+      const index = Math.floor(Math.random() * filteredIdeas.length);
+      const idea = filteredIdeas[index];
+      const ideaIndex = ideas.indexOf(idea);
+      if (ideaIndex !== -1) ideas.splice(ideaIndex, 1);
+
+      balance -= cost;
+      document.getElementById("totalBalance").textContent = balance;
+
+      purchasedIdeas.push(idea);
+
+      document.getElementById("ideaContainer").innerHTML = `
+        <div class="idea-card">
+          <h2>${idea.title}</h2>
+          <div class="idea-tier">${idea.tier} Idea (${idea.category})</div>
+          <p>${idea.description}</p>
+          <a href="data:text/plain,${encodeURIComponent(idea.description)}" download="${idea.title}.txt">
+            <button>Download Full Script</button>
+          </a>
+        </div>
+      `;
+    }
+
+    function loginUser(e) {
+      e.preventDefault();
+      const name = document.getElementById("loginUsername").value.trim();
+      const email = document.getElementById("loginEmail").value.trim();
+      if (name && email) {
+        loggedInUser = { name, email };
+        document.getElementById("userName").textContent = name;
+        document.getElementById("userEmail").textContent = email;
+        document.getElementById("loginOverlay").style.display = "none";
+        alert("Logged in successfully");
+      }
+    }
+
+    function uploadIdea(e) {
+      e.preventDefault();
+      const title = document.getElementById("ideaTitle").value;
+      const category = document.getElementById("ideaCategory").value;
+      const file = document.getElementById("ideaFile").files[0];
+
+      if (title && category && file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          uploadedIdeas.push({ title, category, content: event.target.result });
+          alert(`Idea '${title}' uploaded successfully!`);
+        }
+        reader.readAsText(file);
+      }
+    }
+
+    function showPopup(type) {
+      const overlay = document.getElementById("ideaPopup");
+      const list = document.getElementById("popupList");
+      const title = document.getElementById("popupTitle");
+      const data = type === 'uploaded' ? uploadedIdeas : purchasedIdeas;
+      title.textContent = type === 'uploaded' ? 'Your Uploaded Ideas' : 'Your Purchased Ideas';
+      list.innerHTML = data.map(i => `<li>${i.title} <a download="${i.title}.txt" href="data:text/plain,${encodeURIComponent(i.content || i.description)}">Download</a></li>`).join('');
+      overlay.style.display = 'flex';
+    }
+
+    function closePopup() {
+      document.getElementById("ideaPopup").style.display = 'none';
+    }
+
+    window.onload = () => {
+      document.getElementById("loginOverlay").style.display = "flex";
+    };
+  </script>
+</body>
+</html>
